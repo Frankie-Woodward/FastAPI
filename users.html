@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .form-container { margin: 20px 0; }
+        input, button { margin: 5px; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+    <h1>User Management</h1>
+
+    <!-- Form to create a new user -->
+    <div class="form-container">
+        <h3>Create New User</h3>
+        <form id="createUserForm">
+            <input type="text" id="userName" placeholder="Name" required>
+            <input type="email" id="userEmail" placeholder="Email" required>
+            <button type="submit">Create User</button>
+        </form>
+    </div>
+
+    <!-- Form to update an existing user -->
+    <div class="form-container">
+        <h3>Update User</h3>
+        <form id="updateUserForm">
+            <input type="number" id="updateUserId" placeholder="User ID" required>
+            <input type="text" id="updateUserName" placeholder="New Name" required>
+            <input type="email" id="updateUserEmail" placeholder="New Email" required>
+            <button type="submit">Update User</button>
+        </form>
+    </div>
+
+    <!-- Form to delete a user -->
+    <div class="form-container">
+        <h3>Delete User</h3>
+        <form id="deleteUserForm">
+            <input type="number" id="deleteUserId" placeholder="User ID" required>
+            <button type="submit">Delete User</button>
+        </form>
+    </div>
+
+    <!-- List of users -->
+    <h3>Users List</h3>
+    <button onclick="getUsers()">Refresh User List</button>
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- User rows will be added here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Define API base URL
+        const apiBaseUrl = 'http://127.0.0.1:8000';
+
+        // Fetch and display users
+        function getUsers() {
+            fetch(`${apiBaseUrl}/users`)
+                .then(response => response.json())
+                .then(users => {
+                    const usersTable = document.getElementById("usersTable").getElementsByTagName('tbody')[0];
+                    usersTable.innerHTML = "";
+                    users.forEach(user => {
+                        const row = usersTable.insertRow();
+                        row.insertCell(0).innerText = user.id;
+                        row.insertCell(1).innerText = user.name;
+                        row.insertCell(2).innerText = user.email;
+                    });
+                });
+        }
+
+        // Create a new user
+        document.getElementById("createUserForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const name = document.getElementById("userName").value;
+            const email = document.getElementById("userEmail").value;
+
+            fetch(`${apiBaseUrl}/users/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email })
+            }).then(response => response.json())
+              .then(data => {
+                  alert("User created!");
+                  getUsers();
+              });
+        });
+
+        // Update a user
+        document.getElementById("updateUserForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const userId = document.getElementById("updateUserId").value;
+            const name = document.getElementById("updateUserName").value;
+            const email = document.getElementById("updateUserEmail").value;
+
+            fetch(`${apiBaseUrl}/users/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email })
+            }).then(response => {
+                if (response.ok) {
+                    alert("User updated!");
+                    getUsers();
+                } else {
+                    alert("Failed to update user");
+                }
+            });
+        });
+
+        // Delete a user
+        document.getElementById("deleteUserForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const userId = document.getElementById("deleteUserId").value;
+
+            fetch(`${apiBaseUrl}/users/${userId}`, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    alert("User deleted!");
+                    getUsers();
+                } else {
+                    alert("Failed to delete user");
+                }
+            });
+        });
+
+        // Load users on page load
+        getUsers();
+    </script>
+
+</body>
+</html>
